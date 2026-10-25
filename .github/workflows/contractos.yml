@@ -1,0 +1,61 @@
+name: CONTRACTOS assurance
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  assurance-regression-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: assurance-regression-evidence
+          path: reports/
+          retention-days: 7
+          if-no-files-found: error
+  contractos-types:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node scripts/gate.mjs examples/typed/contractos.project.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: type-gate-evidence
+          path: examples/typed/evidence/
+          if-no-files-found: error
+  contractos-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node scripts/demo.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-gate-evidence
+          path: reports/runtime-demo/evidence/
+          if-no-files-found: error
