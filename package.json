@@ -1,0 +1,1 @@
+{"name":"contractos-assurance","version":"0.5.0","private":true,"type":"module","engines":{"node":">=22"},"scripts":{"test":"node tests/run.mjs","gate":"node scripts/gate.mjs","runtime":"node scripts/runtime.mjs"},"dependencies":{"openapi-typescript":"7.10.1","typescript":"5.9.3","yaml":"2.9.1"}}
