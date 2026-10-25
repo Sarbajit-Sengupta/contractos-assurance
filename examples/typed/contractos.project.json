@@ -1,0 +1,8 @@
+{
+  "baseline": "baseline.json",
+  "candidate": "candidate.json",
+  "tsconfig": "tsconfig.json",
+  "generatedFile": "api.d.ts",
+  "output": "evidence",
+  "timeoutMs": 30000
+}
