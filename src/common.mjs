@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+export const VERSION='0.5.0';
+export const hash=value=>createHash('sha256').update(value).digest('hex');
+export function child(root,target){const relative=path.relative(root,target);return relative!==''&&!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative);}
+export function outputPath(configPath,config){const root=path.dirname(configPath),output=path.resolve(root,config?.output??'contractos-report');if(!child(root,output))throw Error('Output must be a child of the configuration directory.');let current=output;while(child(root,current)){if(fs.existsSync(current)&&fs.lstatSync(current).isSymbolicLink())throw Error('Output cannot traverse a symbolic link.');current=path.dirname(current);}return output;}
+export function writeReport(output,report){fs.mkdirSync(output,{recursive:true});const text=JSON.stringify(report,null,2)+'\n';const temporary=path.join(output,'report.json.tmp');fs.writeFileSync(temporary,text);fs.renameSync(temporary,path.join(output,'report.json'));const clean=s=>String(s).replaceAll('`','\\`');fs.writeFileSync(path.join(output,'report.md'),`# CONTRACTOS ${report.kind}\n\nStatus: **${report.status}**\n\n${clean(report.summary)}\n\nRun: ${report.runId}\n\n${(report.newDiagnostics??[]).map(d=>`- ${clean(d.file)}:${d.line}:${d.column} TS${d.code}: ${clean(d.message)}`).join('\n')}\n\n${(report.checks??[]).map(c=>`- ${clean(c.name)}: ${c.status}`).join('\n')}\n\nEvidence: see report.json for fingerprints, scope, and completed checks.\n`);}
+export function baseReport(kind){return {reportVersion:1,engineVersion:VERSION,kind,runId:crypto.randomUUID(),startedAt:new Date().toISOString(),status:'incomplete',summary:'Check started; no passing result exists yet.'};}
+export function loadConfig(configPath){const text=fs.readFileSync(configPath,'utf8');const config=JSON.parse(text);if(!config||typeof config!=='object'||Array.isArray(config))throw Error('Configuration must be an object.');return {config,text};}
